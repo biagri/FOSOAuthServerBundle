@@ -15,27 +15,16 @@ namespace FOS\OAuthServerBundle\Model;
 
 interface ClientManagerInterface
 {
-    /**
-     * @return ClientInterface
-     */
-    public function createClient();
+    public function createClient(): ClientInterface;
 
-    /**
-     * @return string
-     */
-    public function getClass();
+    public function getClass(): string;
 
-    /**
-     * @return ClientInterface|null
-     */
-    public function findClientBy(array $criteria);
+    public function findClientBy(array $criteria): ?ClientInterface;
 
     /**
      * @param mixed $publicId
-     *
-     * @return ClientInterface|null
      */
-    public function findClientByPublicId($publicId);
+    public function findClientByPublicId($publicId): ?ClientInterface;
 
     public function updateClient(ClientInterface $client);
 

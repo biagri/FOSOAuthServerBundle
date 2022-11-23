@@ -14,12 +14,13 @@ declare(strict_types=1);
 namespace FOS\OAuthServerBundle\Tests\Controller;
 
 use FOS\OAuthServerBundle\Controller\AuthorizeController;
-use FOS\OAuthServerBundle\Event\PostAuthorizationEvent;
-use FOS\OAuthServerBundle\Event\PreAuthorizationEvent;
+use FOS\OAuthServerBundle\Event\OAuthEvent;
 use FOS\OAuthServerBundle\Form\Handler\AuthorizeFormHandler;
 use FOS\OAuthServerBundle\Model\ClientInterface;
 use FOS\OAuthServerBundle\Model\ClientManagerInterface;
 use OAuth2\OAuth2;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormView;
@@ -33,57 +34,57 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Twig\Environment as TwigEnvironment;
+use Twig\Environment;
 
-class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
+class AuthorizeControllerTest extends TestCase
 {
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|RequestStack
+     * @var MockObject|RequestStack
      */
     protected $requestStack;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|SessionInterface
+     * @var MockObject|SessionInterface
      */
     protected $session;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|Form
+     * @var MockObject|Form
      */
     protected $form;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|AuthorizeFormHandler
+     * @var MockObject|AuthorizeFormHandler
      */
     protected $authorizeFormHandler;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|OAuth2
+     * @var MockObject|OAuth2
      */
     protected $oAuth2Server;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|TokenStorageInterface
-     */
-    protected $tokenStorage;
-
-    /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|TwigEnvironment
+     * @var MockObject|Environment
      */
     protected $twig;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|UrlGeneratorInterface
+     * @var MockObject|TokenStorageInterface
+     */
+    protected $tokenStorage;
+
+    /**
+     * @var MockObject|UrlGeneratorInterface
      */
     protected $router;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|ClientManagerInterface
+     * @var MockObject|ClientManagerInterface
      */
     protected $clientManager;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|EventDispatcherInterface
+     * @var MockObject|EventDispatcherInterface
      */
     protected $eventDispatcher;
 
@@ -93,42 +94,37 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
     protected $instance;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|Request
+     * @var MockObject|Request
      */
     protected $request;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|ParameterBag
+     * @var MockObject|ParameterBag
      */
     protected $requestQuery;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|ParameterBag
+     * @var MockObject|ParameterBag
      */
     protected $requestRequest;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|UserInterface
+     * @var MockObject|UserInterface
      */
     protected $user;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|ClientInterface
+     * @var MockObject|ClientInterface
      */
     protected $client;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|PreAuthorizationEvent
+     * @var MockObject|OAuthEvent
      */
-    protected $preAuthorizationEvent;
+    protected $event;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|PostAuthorizationEvent
-     */
-    protected $postAuthorizationEvent;
-
-    /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|FormView
+     * @var MockObject|FormView
      */
     protected $formView;
 
@@ -150,11 +146,11 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock()
         ;
-        $this->tokenStorage = $this->getMockBuilder(TokenStorageInterface::class)
+        $this->twig = $this->getMockBuilder(Environment::class)
             ->disableOriginalConstructor()
             ->getMock()
         ;
-        $this->twig = $this->getMockBuilder(TwigEnvironment::class)
+        $this->tokenStorage = $this->getMockBuilder(TokenStorageInterface::class)
             ->disableOriginalConstructor()
             ->getMock()
         ;
@@ -180,15 +176,14 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
             $this->form,
             $this->authorizeFormHandler,
             $this->oAuth2Server,
+            $this->twig,
             $this->tokenStorage,
             $this->router,
             $this->clientManager,
-            $this->eventDispatcher,
-            $this->twig,
-            $this->session
+            $this->eventDispatcher
         );
 
-        /** @var \PHPUnit\Framework\MockObject\MockObject&Request $request */
+        /** @var MockObject&Request $request */
         $request = $this->getMockBuilder(Request::class)
             ->disableOriginalConstructor()
             ->getMock()
@@ -212,11 +207,7 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->getMock()
         ;
-        $this->preAuthorizationEvent = $this->getMockBuilder(PreAuthorizationEvent::class)
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-        $this->postAuthorizationEvent = $this->getMockBuilder(PostAuthorizationEvent::class)
+        $this->event = $this->getMockBuilder(OAuthEvent::class)
             ->disableOriginalConstructor()
             ->getMock()
         ;
@@ -284,15 +275,16 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
         $propertyReflection->setValue($this->instance, $this->client);
 
         $this->eventDispatcher
-            ->expects($this->once())
+            ->expects($this->at(0))
             ->method('dispatch')
-            ->with(new PreAuthorizationEvent($this->user, $this->client))
-            ->willReturn($this->preAuthorizationEvent)
+            ->with(OAuthEvent::PRE_AUTHORIZATION_PROCESS, new OAuthEvent($this->user, $this->client))
+            ->willReturn($this->event)
         ;
 
-        $this->preAuthorizationEvent
-            ->expects($this->once())
+        $this->event
+            ->expects($this->at(0))
             ->method('isAuthorizedClient')
+            ->with()
             ->willReturn(false)
         ;
 
@@ -309,8 +301,10 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
             ->willReturn($this->formView)
         ;
 
+        $response = new Response();
+
         $this->twig
-            ->expects($this->once())
+            ->expects($this->at(0))
             ->method('render')
             ->with(
                 '@FOSOAuthServer/Authorize/authorize.html.twig',
@@ -319,10 +313,10 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
                     'client' => $this->client,
                 ]
             )
-            ->willReturn($responseBody = 'response')
+            ->willReturn($response)
         ;
 
-        $this->assertSame($responseBody, $this->instance->authorizeAction($this->request)->getContent());
+        $this->assertSame($response, $this->instance->authorizeAction($this->request));
     }
 
     public function testAuthorizeActionWillFinishClientAuthorization(): void
@@ -356,15 +350,16 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
         $propertyReflection->setValue($this->instance, $this->client);
 
         $this->eventDispatcher
-            ->expects($this->once())
+            ->expects($this->at(0))
             ->method('dispatch')
-            ->with(new PreAuthorizationEvent($this->user, $this->client))
-            ->willReturn($this->preAuthorizationEvent)
+            ->with(OAuthEvent::PRE_AUTHORIZATION_PROCESS, new OAuthEvent($this->user, $this->client))
+            ->willReturn($this->event)
         ;
 
-        $this->preAuthorizationEvent
-            ->expects($this->once())
+        $this->event
+            ->expects($this->at(0))
             ->method('isAuthorizedClient')
+            ->with()
             ->willReturn(true)
         ;
 
@@ -439,15 +434,16 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
         $propertyReflection->setValue($this->instance, $this->client);
 
         $this->eventDispatcher
-            ->expects($this->once())
+            ->expects($this->at(0))
             ->method('dispatch')
-            ->with(new PreAuthorizationEvent($this->user, $this->client))
-            ->willReturn($this->preAuthorizationEvent)
+            ->with(OAuthEvent::PRE_AUTHORIZATION_PROCESS, new OAuthEvent($this->user, $this->client))
+            ->willReturn($this->event)
         ;
 
-        $this->preAuthorizationEvent
-            ->expects($this->once())
+        $this->event
+            ->expects($this->at(0))
             ->method('isAuthorizedClient')
+            ->with()
             ->willReturn(false)
         ;
 
@@ -464,8 +460,10 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
             ->willReturn($this->formView)
         ;
 
+        $response = new Response();
+
         $this->twig
-            ->expects($this->once())
+            ->expects($this->at(0))
             ->method('render')
             ->with(
                 '@FOSOAuthServer/Authorize/authorize.html.twig',
@@ -474,10 +472,10 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
                     'client' => $this->client,
                 ]
             )
-            ->willReturn($responseBody = 'response')
+            ->willReturn($response)
         ;
 
-        $this->assertSame($responseBody, $this->instance->authorizeAction($this->request)->getContent());
+        $this->assertSame($response, $this->instance->authorizeAction($this->request));
     }
 
     public function testAuthorizeActionWillProcessAuthorizationForm(): void
@@ -513,11 +511,11 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
         $this->eventDispatcher
             ->expects($this->at(0))
             ->method('dispatch')
-            ->with(new PreAuthorizationEvent($this->user, $this->client))
-            ->willReturn($this->preAuthorizationEvent)
+            ->with(OAuthEvent::PRE_AUTHORIZATION_PROCESS, new OAuthEvent($this->user, $this->client))
+            ->willReturn($this->event)
         ;
 
-        $this->preAuthorizationEvent
+        $this->event
             ->expects($this->once())
             ->method('isAuthorizedClient')
             ->willReturn(false)
@@ -538,7 +536,10 @@ class AuthorizeControllerTest extends \PHPUnit\Framework\TestCase
         $this->eventDispatcher
             ->expects($this->at(1))
             ->method('dispatch')
-            ->with(new PostAuthorizationEvent($this->user, $this->client, true))
+            ->with(
+                OAuthEvent::POST_AUTHORIZATION_PROCESS,
+                new OAuthEvent($this->user, $this->client, true)
+            )
         ;
 
         $formName = 'formName'.\random_bytes(10);

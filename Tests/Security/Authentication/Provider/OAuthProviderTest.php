@@ -17,19 +17,22 @@ use FOS\OAuthServerBundle\Model\AccessToken;
 use FOS\OAuthServerBundle\Security\Authentication\Provider\OAuthProvider;
 use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
 use OAuth2\OAuth2;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Security\Core\Role\Role;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
-class OAuthProviderTest extends \PHPUnit\Framework\TestCase
+class OAuthProviderTest extends TestCase
 {
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|UserInterface
+     * @var MockObject|UserInterface
      */
     protected $user;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|UserProviderInterface
+     * @var MockObject|UserProviderInterface
      */
     protected $userProvider;
 
@@ -39,7 +42,7 @@ class OAuthProviderTest extends \PHPUnit\Framework\TestCase
     protected $provider;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|OAuth2
+     * @var MockObject|OAuth2
      */
     protected $serverService;
 
@@ -90,13 +93,14 @@ class OAuthProviderTest extends \PHPUnit\Framework\TestCase
         ;
 
         $result = $this->provider->authenticate($token);
-        $roles = $result->getRoleNames();
 
         $this->assertSame($this->user, $result->getUser());
         $this->assertSame($token->getToken(), $result->getToken());
         $this->assertTrue($result->isAuthenticated());
-        $this->assertCount(1, $roles);
-        $this->assertSame('ROLE_USER', $roles[0]);
+        $this->assertCount(1, $result->getRoles());
+
+        $roles = $result->getRoles();
+        $this->assertSame('ROLE_USER', $roles[0]->getRole());
     }
 
     public function testAuthenticateReturnsTokenIfValidEvenIfNullData(): void
@@ -116,7 +120,7 @@ class OAuthProviderTest extends \PHPUnit\Framework\TestCase
 
         $this->assertNull($result->getUser());
         $this->assertTrue($result->isAuthenticated());
-        $this->assertCount(0, $result->getRoleNames());
+        $this->assertCount(0, $result->getRoles());
     }
 
     public function testAuthenticateTransformsScopesAsRoles(): void
@@ -138,10 +142,12 @@ class OAuthProviderTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($result->getUser());
         $this->assertTrue($result->isAuthenticated());
 
-        $roles = $result->getRoleNames();
+        $roles = $result->getRoles();
         $this->assertCount(2, $roles);
-        $this->assertSame('ROLE_FOO', $roles[0]);
-        $this->assertSame('ROLE_BAR', $roles[1]);
+        $this->assertInstanceOf(Role::class, $roles[0]);
+        $this->assertSame('ROLE_FOO', $roles[0]->getRole());
+        $this->assertInstanceOf(Role::class, $roles[1]);
+        $this->assertSame('ROLE_BAR', $roles[1]->getRole());
     }
 
     public function testAuthenticateWithNullScope(): void
@@ -164,7 +170,9 @@ class OAuthProviderTest extends \PHPUnit\Framework\TestCase
 
         $this->assertNull($result->getUser());
         $this->assertTrue($result->isAuthenticated());
-        $this->assertCount(0, $result->getRoleNames());
+
+        $roles = $result->getRoles();
+        $this->assertCount(0, $roles);
     }
 
     public function testAuthenticateWithEmptyScope(): void
@@ -185,6 +193,8 @@ class OAuthProviderTest extends \PHPUnit\Framework\TestCase
 
         $this->assertNull($result->getUser());
         $this->assertTrue($result->isAuthenticated());
-        $this->assertCount(0, $result->getRoleNames());
+
+        $roles = $result->getRoles();
+        $this->assertCount(0, $roles);
     }
 }

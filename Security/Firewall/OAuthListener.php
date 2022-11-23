@@ -47,6 +47,7 @@ class OAuthListener
     /**
      * @param TokenStorageInterface          $tokenStorage          the token storage
      * @param AuthenticationManagerInterface $authenticationManager the authentication manager
+     * @param OAuth2                         $serverService         the server
      */
     public function __construct(TokenStorageInterface $tokenStorage, AuthenticationManagerInterface $authenticationManager, OAuth2 $serverService)
     {
@@ -55,6 +56,9 @@ class OAuthListener
         $this->serverService = $serverService;
     }
 
+    /**
+     * @param RequestEvent $event the event
+     */
     public function __invoke(RequestEvent $event)
     {
         if (null === $oauthToken = $this->serverService->getBearerToken($event->getRequest(), true)) {

@@ -17,16 +17,18 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use FOS\OAuthServerBundle\Entity\ClientManager;
 use FOS\OAuthServerBundle\Model\ClientInterface;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class ClientManagerTest.
  *
  * @author Nikola Petkanski <nikola@petkanski.com>
  */
-class ClientManagerTest extends \PHPUnit\Framework\TestCase
+class ClientManagerTest extends TestCase
 {
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|EntityManagerInterface
+     * @var MockObject|EntityManagerInterface
      */
     protected $entityManager;
 
@@ -36,7 +38,7 @@ class ClientManagerTest extends \PHPUnit\Framework\TestCase
     protected $className;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|EntityRepository
+     * @var MockObject|EntityRepository
      */
     protected $repository;
 
@@ -67,6 +69,13 @@ class ClientManagerTest extends \PHPUnit\Framework\TestCase
         $this->instance = new ClientManager($this->entityManager, $this->className);
 
         parent::setUp();
+    }
+
+    public function testConstructWillSetParameters(): void
+    {
+        $this->assertAttributeSame($this->entityManager, 'em', $this->instance);
+        $this->assertAttributeSame($this->repository, 'repository', $this->instance);
+        $this->assertAttributeSame($this->className, 'class', $this->instance);
     }
 
     public function testGetClass(): void

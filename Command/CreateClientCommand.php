@@ -22,8 +22,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class CreateClientCommand extends Command
 {
-    protected static $defaultName = 'fos:oauth-server:create-client';
-
+    /**
+     * @var ClientManagerInterface
+     */
     private $clientManager;
 
     public function __construct(ClientManagerInterface $clientManager)
@@ -36,11 +37,12 @@ class CreateClientCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 
         $this
+            ->setName('fos:oauth-server:create-client')
             ->setDescription('Creates a new client')
             ->addOption(
                 'redirect-uri',
@@ -56,7 +58,8 @@ class CreateClientCommand extends Command
                 'Sets allowed grant type for client. Use this option multiple times to set multiple grant types..',
                 null
             )
-            ->setHelp(<<<EOT
+            ->setHelp(
+                <<<EOT
 The <info>%command.name%</info> command creates a new client.
 
 <info>php %command.full_name% [--redirect-uri=...] [--grant-type=...]</info>

@@ -15,7 +15,7 @@ namespace FOS\OAuthServerBundle\Tests\Form\Handler;
 
 use FOS\OAuthServerBundle\Form\Handler\AuthorizeFormHandler;
 use FOS\OAuthServerBundle\Form\Model\Authorize;
-use Symfony\Bundle\FrameworkBundle\Tests\Fixtures\Serialization\Author;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -27,27 +27,16 @@ use Symfony\Component\HttpFoundation\RequestStack;
  *
  * @author Nikola Petkanski <nikola@petkanski.com>
  */
-class AuthorizeFormHandlerTest extends \PHPUnit\Framework\TestCase
+class AuthorizeFormHandlerTest extends TestCase
 {
-    /**
-     * @var FormInterface&\PHPUnit\Framework\MockObject\MockObject
-     */
     protected $form;
-    /**
-     * @var Request&\PHPUnit\Framework\MockObject\MockObject
-     */
+
     protected $request;
-    /**
-     * @var ParameterBag&\PHPUnit\Framework\MockObject\MockObject
-     */
+
     protected $requestQuery;
-    /**
-     * @var ParameterBag&\PHPUnit\Framework\MockObject\MockObject
-     */
+
     protected $requestRequest;
-    /**
-     * @var ContainerInterface&\PHPUnit\Framework\MockObject\MockObject
-     */
+
     protected $container;
 
     /**
@@ -87,6 +76,43 @@ class AuthorizeFormHandlerTest extends \PHPUnit\Framework\TestCase
         $_GET = [];
 
         parent::setUp();
+    }
+
+    public function testConstructWillAcceptRequestObjectAsRequest(): void
+    {
+        $request = $this->getMockBuilder(Request::class)
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+
+        $this->instance = new AuthorizeFormHandler($this->form, $request);
+
+        $this->assertAttributeSame($this->form, 'form', $this->instance);
+        $this->assertAttributeSame($request, 'requestStack', $this->instance);
+    }
+
+    public function testConstructWillAcceptRequestStackObjectAsRequest(): void
+    {
+        $requestStack = $this->getMockBuilder(RequestStack::class)
+            ->disableOriginalConstructor()
+            ->getMock()
+        ;
+
+        $this->instance = new AuthorizeFormHandler($this->form, $requestStack);
+
+        $this->assertAttributeSame($this->form, 'form', $this->instance);
+        $this->assertAttributeSame($requestStack, 'requestStack', $this->instance);
+    }
+
+    public function testConstructWillAcceptNullAsRequest(): void
+    {
+        $this->instance = new AuthorizeFormHandler($this->form, null);
+        $this->assertAttributeSame($this->form, 'form', $this->instance);
+        $this->assertAttributeSame(null, 'requestStack', $this->instance);
+
+        $this->instance = new AuthorizeFormHandler($this->form);
+        $this->assertAttributeSame($this->form, 'form', $this->instance);
+        $this->assertAttributeSame(null, 'requestStack', $this->instance);
     }
 
     public function testConstructWillThrowException(): void

@@ -17,6 +17,7 @@ use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
 use FOS\OAuthServerBundle\Security\Firewall\OAuthListener;
 use FOS\OAuthServerBundle\Tests\TestCase;
 use OAuth2\OAuth2;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
@@ -24,22 +25,22 @@ use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterfac
 class OAuthListenerTest extends TestCase
 {
     /**
-     * @var OAuth2&\PHPUnit\Framework\MockObject\MockObject
+     * @var OAuth2|MockObject
      */
     protected $serverService;
 
     /**
-     * @var AuthenticationManagerInterface&\PHPUnit\Framework\MockObject\MockObject
+     * @var MockObject|AuthenticationManagerInterface
      */
     protected $authManager;
 
     /**
-     * @var mixed&\PHPUnit\Framework\MockObject\MockObject
+     * @var MockObject
      */
     protected $securityContext;
 
     /**
-     * @var RequestEvent&\PHPUnit\Framework\MockObject\MockObject
+     * @var MockObject|RequestEvent
      */
     protected $event;
 
@@ -99,7 +100,7 @@ class OAuthListenerTest extends TestCase
         ;
 
         /** @var OAuthToken $token */
-        $token = $listener($this->event);
+        $token = $listener->handle($this->event);
 
         $this->assertInstanceOf(OAuthToken::class, $token);
         $this->assertSame('a-token', $token->getToken());
@@ -137,7 +138,7 @@ class OAuthListenerTest extends TestCase
             ->will($this->returnArgument(0))
         ;
 
-        $ret = $listener($this->event);
+        $ret = $listener->handle($this->event);
 
         $this->assertSame($response, $ret);
     }

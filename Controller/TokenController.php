@@ -30,10 +30,7 @@ class TokenController
         $this->server = $server;
     }
 
-    /**
-     * @return Response
-     */
-    public function tokenAction(Request $request)
+    public function tokenAction(Request $request): Response
     {
         try {
             return $this->server->grantAccessToken($request);

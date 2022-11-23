@@ -13,13 +13,15 @@ declare(strict_types=1);
 
 namespace FOS\OAuthServerBundle\Tests\Entity;
 
+use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ObjectRepository;
 use FOS\OAuthServerBundle\Entity\AuthCodeManager;
 use FOS\OAuthServerBundle\Model\AuthCodeInterface;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group time-sensitive
@@ -28,10 +30,10 @@ use FOS\OAuthServerBundle\Model\AuthCodeInterface;
  *
  * @author Nikola Petkanski <nikola@petkanski.com>
  */
-class AuthCodeManagerTest extends \PHPUnit\Framework\TestCase
+class AuthCodeManagerTest extends TestCase
 {
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|EntityManagerInterface
+     * @var MockObject|EntityManagerInterface
      */
     protected $entityManager;
 
@@ -56,6 +58,12 @@ class AuthCodeManagerTest extends \PHPUnit\Framework\TestCase
         $this->instance = new AuthCodeManager($this->entityManager, $this->className);
 
         parent::setUp();
+    }
+
+    public function testConstructWillSetParameters(): void
+    {
+        $this->assertAttributeSame($this->entityManager, 'em', $this->instance);
+        $this->assertAttributeSame($this->className, 'class', $this->instance);
     }
 
     public function testGetClassWillReturnClassName(): void

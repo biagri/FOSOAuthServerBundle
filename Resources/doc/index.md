@@ -3,18 +3,18 @@ Getting Started With FOSOAuthServerBundle
 
 ## Prerequisites
 
-This version of the bundle requires Symfony 2.8.
-If you are using Symfony 2.0.x, please use the 1.1.1 release of the bundle (or lower), and follow
-[this documentation](https://github.com/FriendsOfSymfony/FOSOAuthServerBundle/blob/1.1.1/README.md).
+This version of the bundle requires Symfony 4.4 or Symfony 5
 
 #### Translations
 
 If you wish to use default texts provided in this bundle, you have to make sure you have translator enabled in your config:
 
-    # app/config/config.yml
+    # config/package/translations.yml
 
     framework:
-        translator: { fallback: en }
+        translator:
+            fallbacks: 
+                - 'en'
 
 For more information about translations, check [Symfony documentation](http://symfony.com/doc/current/book/translation.html).
 
@@ -24,10 +24,9 @@ For more information about translations, check [Symfony documentation](http://sy
 Installation is a quick 5 steps process:
 
 1. Download FOSOAuthServerBundle
-2. Enable the Bundle
-3. Create your model class
-4. Configure your application's security.yml
-5. Configure the FOSOAuthServerBundle
+2. Create your model class
+3. Configure your application's security.yml
+4. Configure the FOSOAuthServerBundle
 
 
 ### Step 1: Install FOSOAuthServerBundle
@@ -44,25 +43,7 @@ Just check on [Packagist](http://packagist.org/packages/friendsofsymfony/oauth-s
 }
 ```
 
-### Step 2: Enable the bundle
-
-Finally, enable the bundle in the kernel:
-
-``` php
-<?php
-// app/AppKernel.php
-
-public function registerBundles()
-{
-    $bundles = array(
-        // ...
-        new FOS\OAuthServerBundle\FOSOAuthServerBundle(),
-    );
-}
-```
-
-
-### Step 3: Create model classes
+### Step 2: Create model classes
 
 This bundle needs to persist some classes to a database:
 
@@ -102,9 +83,9 @@ start:
 
 ``` php
 <?php
-// src/Acme/ApiBundle/Entity/Client.php
+// src/Entity/Client.php
 
-namespace Acme\ApiBundle\Entity;
+namespace App\Entity;
 
 use FOS\OAuthServerBundle\Entity\Client as BaseClient;
 use Doctrine\ORM\Mapping as ORM;
@@ -131,9 +112,9 @@ class Client extends BaseClient
 
 ``` php
 <?php
-// src/Acme/ApiBundle/Entity/AccessToken.php
+// src/App/Entity/AccessToken.php
 
-namespace Acme\ApiBundle\Entity;
+namespace App\Entity;
 
 use FOS\OAuthServerBundle\Entity\AccessToken as BaseAccessToken;
 use Doctrine\ORM\Mapping as ORM;
@@ -166,9 +147,9 @@ class AccessToken extends BaseAccessToken
 
 ``` php
 <?php
-// src/Acme/ApiBundle/Entity/RefreshToken.php
+// src/App/Entity/RefreshToken.php
 
-namespace Acme\ApiBundle\Entity;
+namespace App\Entity;
 
 use FOS\OAuthServerBundle\Entity\RefreshToken as BaseRefreshToken;
 use Doctrine\ORM\Mapping as ORM;
@@ -201,9 +182,9 @@ class RefreshToken extends BaseRefreshToken
 
 ``` php
 <?php
-// src/Acme/ApiBundle/Entity/AuthCode.php
+// src/App/Entity/AuthCode.php
 
-namespace Acme\ApiBundle\Entity;
+namespace App\Entity;
 
 use FOS\OAuthServerBundle\Entity\AuthCode as BaseAuthCode;
 use Doctrine\ORM\Mapping as ORM;
@@ -241,9 +222,9 @@ __Note__: If you don't have `auto_mapping` activated in your doctrine configurat
 ``` php
 <?php
 
-// src/Acme/ApiBundle/Document/Client.php
+// src/App/Document/Client.php
 
-namespace Acme\ApiBundle\Document;
+namespace App\Document;
 
 use FOS\OAuthServerBundle\Document\Client as BaseClient;
 
@@ -254,14 +235,14 @@ class Client extends BaseClient
 ```
 
 ``` xml
-<!-- src/Acme/ApiBundle/Resources/config/doctrine/Client.mongodb.xml -->
+<!-- src/App/Resources/config/doctrine/Client.mongodb.xml -->
 
 <doctrine-mongo-mapping xmlns="http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping
                     http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping.xsd">
 
-    <document name="Acme\ApiBundle\Document\Client" db="acme" collection="oauthClient" customId="true">
+    <document name="App\Document\Client" db="acme" collection="oauthClient" customId="true">
         <field fieldName="id" id="true" strategy="AUTO" />
     </document>
 
@@ -271,9 +252,9 @@ class Client extends BaseClient
 ``` php
 <?php
 
-// src/Acme/ApiBundle/Document/AuthCode.php
+// src/App/Document/AuthCode.php
 
-namespace Acme\ApiBundle\Document;
+namespace App\Document;
 
 use FOS\OAuthServerBundle\Document\AuthCode as BaseAuthCode;
 use FOS\OAuthServerBundle\Model\ClientInterface;
@@ -296,16 +277,16 @@ class AuthCode extends BaseAuthCode
 ```
 
 ``` xml
-<!-- src/Acme/ApiBundle/Resources/config/doctrine/AuthCode.mongodb.xml -->
+<!-- src/App/Resources/config/doctrine/AuthCode.mongodb.xml -->
 
 <doctrine-mongo-mapping xmlns="http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping
                     http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping.xsd">
 
-    <document name="Acme\ApiBundle\Document\AuthCode" db="acme" collection="oauthAuthCode" customId="true">
+    <document name="App\Document\AuthCode" db="acme" collection="oauthAuthCode" customId="true">
         <field fieldName="id" id="true" strategy="AUTO" />
-        <reference-one target-document="Acme\ApiBundle\Document\Client" field="client" />
+        <reference-one target-document="App\Document\Client" field="client" />
     </document>
 
 </doctrine-mongo-mapping>
@@ -314,9 +295,9 @@ class AuthCode extends BaseAuthCode
 ``` php
 <?php
 
-// src/Acme/ApiBundle/Document/AccessToken.php
+// src/App/Document/AccessToken.php
 
-namespace Acme\ApiBundle\Document;
+namespace App\Document;
 
 use FOS\OAuthServerBundle\Document\AccessToken as BaseAccessToken;
 use FOS\OAuthServerBundle\Model\ClientInterface;
@@ -339,16 +320,16 @@ class AccessToken extends BaseAccessToken
 ```
 
 ``` xml
-<!-- src/Acme/ApiBundle/Resources/config/doctrine/AccessToken.mongodb.xml -->
+<!-- src/App/Resources/config/doctrine/AccessToken.mongodb.xml -->
 
 <doctrine-mongo-mapping xmlns="http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping
                     http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping.xsd">
 
-    <document name="Acme\ApiBundle\Document\AccessToken" db="acme" collection="oauthAccessToken" customId="true">
+    <document name="App\Document\AccessToken" db="acme" collection="oauthAccessToken" customId="true">
         <field fieldName="id" id="true" strategy="AUTO" />
-        <reference-one target-document="Acme\ApiBundle\Document\Client" field="client" />
+        <reference-one target-document="App\Document\Client" field="client" />
     </document>
 
 </doctrine-mongo-mapping>
@@ -357,9 +338,9 @@ class AccessToken extends BaseAccessToken
 ``` php
 <?php
 
-// src/Acme/ApiBundle/Document/RefreshToken.php
+// src/App/Document/RefreshToken.php
 
-namespace Acme\ApiBundle\Document;
+namespace App\Document;
 
 use FOS\OAuthServerBundle\Document\RefreshToken as BaseRefreshToken;
 use FOS\OAuthServerBundle\Model\ClientInterface;
@@ -382,22 +363,22 @@ class RefreshToken extends BaseRefreshToken
 ```
 
 ``` xml
-<!-- src/Acme/ApiBundle/Resources/config/doctrine/RefreshToken.mongodb.xml -->
+<!-- src/App/Resources/config/doctrine/RefreshToken.mongodb.xml -->
 
 <doctrine-mongo-mapping xmlns="http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping
                     http://doctrine-project.org/schemas/odm/doctrine-mongo-mapping.xsd">
 
-    <document name="Acme\ApiBundle\Document\RefreshToken" db="acme" collection="oauthRefreshToken" customId="true">
+    <document name="App\Document\RefreshToken" db="acme" collection="oauthRefreshToken" customId="true">
         <field fieldName="id" id="true" strategy="AUTO" />
-        <reference-one target-document="Acme\ApiBundle\Document\Client" field="client" />
+        <reference-one target-document="App\Document\Client" field="client" />
     </document>
 
 </doctrine-mongo-mapping>
 ```
 
-### Step 4: Configure your application's security.yml
+### Step 3: Configure your application's security.yml
 
 In order for Symfony's security component to use the FOSOAuthServerBundle, you must
 tell it to do so in the `security.yml` file. The `security.yml` file is where the
@@ -407,12 +388,13 @@ Below is a minimal example of the configuration necessary to use the FOSOAuthSer
 in your application:
 
 ``` yaml
-# app/config/security.yml
+# config/packages/security.yml
 security:
     firewalls:
         oauth_token:
             pattern:    ^/oauth/v2/token
             security:   false
+            methods:    [POST]
 
         oauth_authorize:
             pattern:    ^/oauth/v2/auth
@@ -422,7 +404,6 @@ security:
             pattern:    ^/api
             fos_oauth:  true
             stateless:  true
-            anonymous:  false # can be omitted as its default value
 
     access_control:
         - { path: ^/api, roles: [ IS_AUTHENTICATED_FULLY ] }
@@ -436,12 +417,13 @@ Sometimes you need to allow your api to be accessed without authorization. In or
 above-mentioned example configuration.
 
 ``` yaml
-# app/config/security.yml
+# config/packages/security.yml
 security:
     firewalls:
         oauth_token:
             pattern:    ^/oauth/v2/token
             security:   false
+            methods:    [POST]
 
         oauth_authorize:
             pattern:    ^/oauth/v2/auth
@@ -477,12 +459,12 @@ class YourApiController extends Controller
     }
 ```
 
-### Step 5: Configure FOSOAuthServerBundle
+### Step 4: Configure FOSOAuthServerBundle
 
-Import the routing.yml configuration file in app/config/routing.yml:
+Add references to the token.xml and the tuthorize.xml configuration files in config/routes/oauth2.yml:
 
 ``` yaml
-# app/config/routing.yml
+# config/routes/oauth2.yml
 fos_oauth_server_token:
     resource: "@FOSOAuthServerBundle/Resources/config/routing/token.xml"
 
@@ -490,23 +472,23 @@ fos_oauth_server_authorize:
     resource: "@FOSOAuthServerBundle/Resources/config/routing/authorize.xml"
 ```
 
-Add FOSOAuthServerBundle settings in app/config/config.yml:
+Add FOSOAuthServerBundle settings in config/packages/fos_auth_server.yml:
 
 ``` yaml
-# app/config/config.yml
+# config/packages/fos_auth_server.yml
 fos_oauth_server:
     db_driver: orm       # Drivers available: orm or mongodb
-    client_class:        Acme\ApiBundle\Entity\Client
-    access_token_class:  Acme\ApiBundle\Entity\AccessToken
-    refresh_token_class: Acme\ApiBundle\Entity\RefreshToken
-    auth_code_class:     Acme\ApiBundle\Entity\AuthCode
+    client_class:        App\Entity\Client
+    access_token_class:  App\Entity\AccessToken
+    refresh_token_class: App\Entity\RefreshToken
+    auth_code_class:     App\Entity\AuthCode
 ```
 
 If you're authenticating users, don't forget to set the user provider.
 Here's an example using the FOSUserBundle user provider:
 
 ``` yaml
-# app/config/config.yml
+# config/packages/fos_auth_server.yml
 fos_oauth_server:
     ...
 

@@ -17,8 +17,12 @@ use FOS\OAuthServerBundle\Model\ClientInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class AbstractAuthorizationEvent extends Event
+class OAuthEvent extends Event
 {
+    public const PRE_AUTHORIZATION_PROCESS = 'fos_oauth_server.pre_authorization_process';
+
+    public const POST_AUTHORIZATION_PROCESS = 'fos_oauth_server.post_authorization_process';
+
     /**
      * @var UserInterface
      */
@@ -34,6 +38,9 @@ class AbstractAuthorizationEvent extends Event
      */
     private $isAuthorizedClient;
 
+    /**
+     * OAuthEvent constructor.
+     */
     public function __construct(UserInterface $user, ClientInterface $client, bool $isAuthorizedClient = false)
     {
         $this->user = $user;
@@ -41,22 +48,34 @@ class AbstractAuthorizationEvent extends Event
         $this->isAuthorizedClient = $isAuthorizedClient;
     }
 
-    public function getUser(): UserInterface
+    /**
+     * @return UserInterface
+     */
+    public function getUser()
     {
         return $this->user;
     }
 
-    public function setAuthorizedClient(bool $authorized)
+    /**
+     * @param bool $isAuthorizedClient
+     */
+    public function setAuthorizedClient($isAuthorizedClient)
     {
-        $this->isAuthorizedClient = $authorized;
+        $this->isAuthorizedClient = $isAuthorizedClient;
     }
 
-    public function isAuthorizedClient(): bool
+    /**
+     * @return bool
+     */
+    public function isAuthorizedClient()
     {
         return $this->isAuthorizedClient;
     }
 
-    public function getClient(): ClientInterface
+    /**
+     * @return ClientInterface
+     */
+    public function getClient()
     {
         return $this->client;
     }

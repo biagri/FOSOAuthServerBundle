@@ -22,37 +22,45 @@ use FOS\OAuthServerBundle\Model\ClientManagerInterface;
 use FOS\OAuthServerBundle\Model\RefreshToken;
 use FOS\OAuthServerBundle\Model\RefreshTokenManagerInterface;
 use FOS\OAuthServerBundle\Storage\OAuthStorage;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
-class OAuthStorageTest extends \PHPUnit\Framework\TestCase
+class OAuthStorageTest extends TestCase
 {
     /**
-     * @var ClientManagerInterface&\PHPUnit\Framework\MockObject\MockObject
+     * @var ClientManagerInterface|MockObject
      */
     protected $clientManager;
+
     /**
-     * @var AccessTokenManagerInterface&\PHPUnit\Framework\MockObject\MockObject
+     * @var AccessTokenManagerInterface|MockObject
      */
     protected $accessTokenManager;
+
     /**
-     * @var RefreshTokenManagerInterface&\PHPUnit\Framework\MockObject\MockObject
+     * @var RefreshTokenManagerInterface|MockObject
      */
     protected $refreshTokenManager;
+
     /**
-     * @var AuthCodeManagerInterface&\PHPUnit\Framework\MockObject\MockObject
+     * @var AuthCodeManagerInterface|MockObject
      */
     protected $authCodeManager;
+
     /**
-     * @var UserProviderInterface&\PHPUnit\Framework\MockObject\MockObject
+     * @var MockObject|UserProviderInterface
      */
     protected $userProvider;
+
     /**
-     * @var EncoderFactoryInterface&\PHPUnit\Framework\MockObject\MockObject
+     * @var MockObject|EncoderFactoryInterface
      */
     protected $encoderFactory;
+
     /**
      * @var OAuthStorage
      */
@@ -175,7 +183,7 @@ class OAuthStorageTest extends \PHPUnit\Framework\TestCase
         ;
 
         $this->expectException('InvalidArgumentException');
-        $this->storage->createAccessToken('foo', $client, new User(42), 1, 'foo bar');
+        $this->storage->createAccessToken('foo', $client, new User('42'), 1, 'foo bar');
     }
 
     public function testCreateAccessToken(): void
@@ -195,7 +203,7 @@ class OAuthStorageTest extends \PHPUnit\Framework\TestCase
         ;
 
         $client = new Client();
-        $user = new User(42);
+        $user = new User('42');
 
         $token = $this->storage->createAccessToken('foo', $client, $user, 1, 'foo bar');
 
@@ -285,7 +293,7 @@ class OAuthStorageTest extends \PHPUnit\Framework\TestCase
         ;
 
         $client = new Client();
-        $user = new User(42);
+        $user = new User('42');
 
         $token = $this->storage->createRefreshToken('foo', $client, $user, 1, 'foo bar');
 
@@ -490,7 +498,7 @@ class OAuthStorageTest extends \PHPUnit\Framework\TestCase
         ;
 
         $client = new Client();
-        $user = new User(42);
+        $user = new User('42');
 
         $code = $this->storage->createAuthCode('foo', $client, $user, 'http://www.example.com/', 1, 'foo bar');
 
@@ -621,37 +629,36 @@ class OAuthStorageTest extends \PHPUnit\Framework\TestCase
 class User implements UserInterface
 {
     /**
-     * @var string|int
+     * @var mixed
      */
     private $username;
 
-    /**
-     * @param string|int $username
-     */
-    public function __construct($username)
+    public function __construct(string $username)
     {
         $this->username = $username;
     }
 
-    public function getRoles()
+    public function getRoles(): array
     {
         return [];
     }
 
-    public function getPassword()
+    public function getPassword(): string
     {
-        return null;
+        return '';
     }
 
-    public function getSalt()
+    public function getSalt(): string
     {
-        return null;
+        return '';
     }
 
-    /**
-     * @return string|int
-     */
-    public function getUsername()
+    public function getUsername(): string
+    {
+        return $this->username;
+    }
+
+    public function getUserIdentifier(): string
     {
         return $this->username;
     }

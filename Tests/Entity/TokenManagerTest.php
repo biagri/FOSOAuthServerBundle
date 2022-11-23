@@ -21,6 +21,8 @@ use Doctrine\ORM\QueryBuilder;
 use FOS\OAuthServerBundle\Entity\AccessToken;
 use FOS\OAuthServerBundle\Entity\TokenManager;
 use FOS\OAuthServerBundle\Model\TokenInterface;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group time-sensitive
@@ -29,15 +31,15 @@ use FOS\OAuthServerBundle\Model\TokenInterface;
  *
  * @author Nikola Petkanski <nikola@petkanski.com>
  */
-class TokenManagerTest extends \PHPUnit\Framework\TestCase
+class TokenManagerTest extends TestCase
 {
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|EntityManagerInterface
+     * @var MockObject|EntityManagerInterface
      */
     protected $entityManager;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|EntityRepository
+     * @var MockObject|EntityRepository
      */
     protected $repository;
 
@@ -71,6 +73,13 @@ class TokenManagerTest extends \PHPUnit\Framework\TestCase
         ;
 
         $this->instance = new TokenManager($this->entityManager, $this->className);
+    }
+
+    public function testConstructWillSetParameters(): void
+    {
+        $this->assertAttributeSame($this->entityManager, 'em', $this->instance);
+        $this->assertAttributeSame($this->repository, 'repository', $this->instance);
+        $this->assertAttributeSame($this->className, 'class', $this->instance);
     }
 
     public function testUpdateTokenPersistsAndFlushes(): void

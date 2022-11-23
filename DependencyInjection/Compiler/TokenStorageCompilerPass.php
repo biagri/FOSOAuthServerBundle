@@ -18,22 +18,19 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
- * @author Ener-Getick <egetick@gmail.com>
- *
- * @internal
+ * @author Andras Ratz <ratz.andras86@gmail.com>
  */
-final class RequestStackCompilerPass implements CompilerPassInterface
+class TokenStorageCompilerPass implements CompilerPassInterface
 {
     /**
      * {@inheritdoc}
      */
     public function process(ContainerBuilder $container): void
     {
-        if ($container->has('request_stack')) {
-            return;
-        }
-
-        $definition = $container->getDefinition('fos_oauth_server.authorize.form.handler.default');
-        $definition->addMethodCall('setContainer', [new Reference('service_container')]);
+//        $definition = $container->getDefinition('fos_oauth_server.security.authentication.listener');
+//
+//        if ($container->hasDefinition('security.token_storage') === false) {
+//            $definition->replaceArgument(0, new Reference('security.context'));
+//        }
     }
 }

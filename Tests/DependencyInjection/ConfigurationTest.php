@@ -14,15 +14,17 @@ declare(strict_types=1);
 namespace FOS\OAuthServerBundle\Tests\DependencyInjection;
 
 use FOS\OAuthServerBundle\DependencyInjection\Configuration;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
-class ConfigurationTest extends \PHPUnit\Framework\TestCase
+class ConfigurationTest extends TestCase
 {
     public function testShouldImplementConfigurationInterface(): void
     {
-        $rc = new \ReflectionClass(Configuration::class);
+        $rc = new ReflectionClass(Configuration::class);
 
         $this->assertTrue($rc->implementsInterface(ConfigurationInterface::class));
     }
@@ -52,24 +54,12 @@ class ConfigurationTest extends \PHPUnit\Framework\TestCase
             'auth_code_class' => 'anAuthCodeClass',
         ]]);
 
-        $this->assertSame([
+        $expected = [
             'db_driver' => 'orm',
             'client_class' => 'aClientClass',
             'access_token_class' => 'anAccessTokenClass',
             'refresh_token_class' => 'aRefreshTokenClass',
             'auth_code_class' => 'anAuthCodeClass',
-            'model_manager_name' => null,
-            'authorize' => [
-                'form' => [
-                    'type' => 'fos_oauth_server_authorize',
-                    'handler' => 'fos_oauth_server.authorize.form.handler.default',
-                    'name' => 'fos_oauth_server_authorize_form',
-                    'validation_groups' => [
-                        'Authorize',
-                        'Default',
-                    ],
-                ],
-            ],
             'service' => [
                 'storage' => 'fos_oauth_server.storage.default',
                 'user_provider' => null,
@@ -77,9 +67,13 @@ class ConfigurationTest extends \PHPUnit\Framework\TestCase
                 'access_token_manager' => 'fos_oauth_server.access_token_manager.default',
                 'refresh_token_manager' => 'fos_oauth_server.refresh_token_manager.default',
                 'auth_code_manager' => 'fos_oauth_server.auth_code_manager.default',
-                'options' => [],
             ],
-        ], $config);
+        ];
+
+        foreach ($expected as $key => $value) {
+            $this->assertArrayHasKey($key, $config);
+            $this->assertSame($value, $config[$key]);
+        }
     }
 
     public function testShouldMakeClientManagerServiceMandatoryIfCustomDriverIsUsed(): void
@@ -181,7 +175,7 @@ class ConfigurationTest extends \PHPUnit\Framework\TestCase
             ],
         ]]);
 
-        $this->assertSame([
+        $expected = [
             'db_driver' => 'custom',
             'client_class' => 'aClientClass',
             'access_token_class' => 'anAccessTokenClass',
@@ -196,18 +190,11 @@ class ConfigurationTest extends \PHPUnit\Framework\TestCase
                 'user_provider' => null,
                 'options' => [],
             ],
-            'model_manager_name' => null,
-            'authorize' => [
-                'form' => [
-                    'type' => 'fos_oauth_server_authorize',
-                    'handler' => 'fos_oauth_server.authorize.form.handler.default',
-                    'name' => 'fos_oauth_server_authorize_form',
-                    'validation_groups' => [
-                        'Authorize',
-                        'Default',
-                    ],
-                ],
-            ],
-        ], $config);
+        ];
+
+        foreach ($expected as $key => $value) {
+            $this->assertArrayHasKey($key, $config);
+            $this->assertSame($value, $config[$key]);
+        }
     }
 }

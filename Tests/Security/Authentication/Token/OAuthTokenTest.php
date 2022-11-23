@@ -11,12 +11,13 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace FOS\OAuthServerBundle\Tests\Security\Authentification\Token;
+namespace FOS\OAuthServerBundle\Tests\Security\Authentication\Token;
 
 use FOS\OAuthServerBundle\Model\TokenInterface;
 use FOS\OAuthServerBundle\Security\Authentication\Token\OAuthToken;
+use PHPUnit\Framework\TestCase;
 
-class OAuthTokenTest extends \PHPUnit\Framework\TestCase
+class OAuthTokenTest extends TestCase
 {
     /**
      * @var OAuthToken
